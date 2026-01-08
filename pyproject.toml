@@ -5,7 +5,9 @@ description = "Comptage d'instances d'objets"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "fastapi>=0.128.0",
-    "flask>=3.1.2",
-    "hypercorn>=0.18.0",
+    "fastapi==0.128.0",
+    "flask==3.1.2",
+    "hypercorn==0.18.0",
+    "ultralytics==8.3.249",
+    "yt-dlp==2025.12.8",
 ]

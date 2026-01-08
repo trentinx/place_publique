@@ -13,3 +13,7 @@ wheels/
 # Computer Vision models
 yolo*
 rtdetr*
+
+
+# Data files
+*.csv
