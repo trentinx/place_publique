@@ -7,7 +7,7 @@ matériel limité ?
 
 Answer:
 
-yolo*
+yolo
 rtdetr*
 Resnet 16 ?
 
