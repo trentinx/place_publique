@@ -1,9 +1,11 @@
+import os
 import re
 import subprocess
 import cv2
+import csv
+
 from collections import defaultdict
 from datetime import datetime
-import csv
 from place_publique.metrics import is_same_object
 from place_publique.graph import plot_accuracies
 
@@ -62,6 +64,12 @@ def get_direct_url(youtube_url):
     
 
 def start_video_capture(model, video_url=None, resize_dim=(640, 480)):
+    """ Start video capture from a YouTube URL and perform object detection.
+    Args:
+        model: The YOLO model for object detection
+        video_url: The YouTube video URL
+        resize_dim: Tuple for resizing frames (width, height)
+    """
     cap = cv2.VideoCapture(video_url, cv2.CAP_FFMPEG)
 
     if not cap.isOpened():
@@ -75,6 +83,7 @@ def start_video_capture(model, video_url=None, resize_dim=(640, 480)):
     print("ESC pour quitter")
 
     csv_filename = f"detections_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    csv_filename = os.path.join("data", csv_filename)
     csv_file = open(csv_filename, 'w', newline='')
     csv_writer = csv.writer(csv_file)
     csv_writer.writerow([
