@@ -5,11 +5,35 @@ et quels compromis font-ils entre vitesse d’inférence, précision (mAP)
 et consommation de ressources pour un déploiement temps réel sur du
 matériel limité ?
 
-Answer:
+**Answer:**
 
-yolo
-rtdetr*
-Resnet 16 ?
+quelques modèles envisagés:
+
+Principalement les modèles ultralytics autours des 100mo
+
+![Alt text](img/performance-comparison.png)
+
+
+yolo11 (plusieurs variantes pour chaque version de yolo s, n, x ...)
+yolo11x semble le plus approprié, on peut également essayer les modèles -seg qui délimite plus proprement les bounding boxs autour des contours de l'objet observé
+Les modèles de la séquence rtdetr
+
+
+![Alt text](img/baidu-rtdetr-model-overview.avif)
+
+Et potentiellement plus performants encore, meta propose les modèles de la série SAM,
+SAM3 un modèle plus volumineux (2+go, 0.9B parameters)
+
+Recommandation de tester Resnet 16 ?
+
+DETR semble également intéressant,
+
+![Alt text](img/1*Bn1w2OkaRI7glo519fC9fw.png)
+
+
+    Il faut en principe trouver un modèle qui propose un compromis intéressant entre performance, rapidité d'inférence et ressources à disposition tout en étant cohérent avec le timer qu'on s'est imposé en baseline. On doit s'assurer que si on s'est fixé l'analyse d'une image d'un feed continue toutes les 5 secondes, l'outil aura bien eu le temps de récupérer et traiter l'image.
+
+    L'objectif pour nous serait de prompt en direct quel objet (poisson) observer et segmenter
 
 -----
 
@@ -18,15 +42,58 @@ Resnet 16 ?
 modèle de détection d’objets sur des scènes de caméras fixes
 (métriques mAP, précision/rappel par classe, IoU, analyse d’erreurs)
 afin de garantir la fiabilité des statistiques de comptage dans des
-conditions réelles (jour/nuit, pluie, foule dense) ?
+conditions réelles (jour/nuit, pluie, foule dense) ? Données, annotation et robustesse
+
+**Answer:**
+
+Pour évaluer rigoureusement un modèle de détection sur caméras fixes :
+Métriques principales :
+
+mAP@0.5 et mAP@0.5:0.95 pour la performance globale
+Précision/Rappel par classe pour identifier les classes problématiques si on en choisit plusieurs et pas uniquement poisson
+Courbes PR (AUC/ROC) pour optimiser le seuil de confiance selon l'usage (comptage dans notre cas = privilégier le rappel)
+
+Validation contextuelle :
+
+Prise en compte de différents facteurs (jour/nuit, météo, densité de foule qui nous paraît être un programme majeur)
+Analyse d'erreurs comme les faux positifs
+Ground truth : comparer les comptages sur séquences vidéo vs comptage manuel
+
+Spécificités caméras fixes :
+
+Test sur zones pertinentes pour le comptage, conserver les mêmes dimensions d'images
+Analyse de dérive de modèle potentiel : performance sur longues périodes pour détecter les dégradations (changements de luminosité ou autres)
+
+Hors du scope:
+
+On aurait aimer faire du tracking mais c'est peu réaliste
 
 -----
 
-Données, annotation et robustesse
 3. Comment sélectionner, combiner et annoter des datasets (Roboflow
 Universe, datasets de trafic, webcams publiques) pour couvrir la
 variété des contextes clients (places, ports, stations de ski) tout en contrôlant la taille du dataset pour un entraînement faisable sur
 laptop/Colab ?
+
+**Answer:**
+
+Sélection stratégique :
+
+Prioriser la qualité sur la quantité : On espère que 40-100 images annotées suffisent pour du fine-tuning correcte
+Roboflow Universe : filtrer par similarité visuelle (caméras fixes, conditions météo, angles de vue)
+live feed accessible 24/24h : extraire des frames à intervalles réguliers (toutes les 5s-10s) et s'assurer de la disponibilité
+
+Stratégie d'annotation :
+
+Annotation par prompt : SAM2 ou Grounding DINO pour segmenter en spécifiant l'objet textuellement ("poisson")
+Focus sur cas difficiles : luminosité, densité de population
+Validation croisée : 70/20/10 (train/val/test)
+
+Contraintes techniques :
+
+Capacités et temps d'entraînement
+Augmentation de données possible (rotation et luminosité)
+Transfer learning : partir de modèles pré-entraînés (YOLO, RT-DETR, SAM...) pour réduire les besoins en données, dans notre cas les poissons ne sont littéralement jamais détectés donc tout est a faire.
 
 -----
 
@@ -35,14 +102,63 @@ domaine (changement de météo, saison, angle de caméra, résolution)
 sont pertinentes pour améliorer la robustesse d’un modèle de détection
 appliqué à des flux webcams hétérogènes et évolutifs ?
 
+**Answer:**
+
+Dans notre cas ça se résume principalement à l'orientation vu les déplacements variés de poissons en milieux aquatiques, recadrage et jouer sur la luminosité et les floux mêmes si les conditions devrait rester assez consistantes dans un aquarium de jour. Architecture logicielle, DataOps et MLOps
+
+Plus généralement:
+
+Augmentations essentielles :
+
+- Luminosité/contraste : simuler jour/nuit, couchers de soleil, ombres (crucial pour flux 24/24h)
+- Conditions météo : ajout de pluie, brouillard, neige synthétique via albumentations
+- Flou et compression : dégradation qualité pour simuler bande passante variable des webcams
+- Recadrage aléatoire : compenser les variations de zoom et angles entre caméras fixes
+
+Adaptation de domaine :
+
+- Fine-tuning progressif : ré-entraîner sur échantillons du flux cible toutes les semaines/mois
+- Normalisation adaptative : ajuster preprocessing selon statistiques du flux (luminosité moyenne, résolution native)
+- Détection de drift : monitorer confiance moyenne et alerter si chute significative (changement saison, repositionnement caméra)
+
+Contraintes pratiques :
+
+- Augmentations légères uniquement : éviter transformations irréalistes qui nuisent au fine-tuning avec peu de données
+- Prioriser augmentations temporelles : variation luminosité horaire observée sur le flux réel
+- Pipeline automatisé : capturer conditions rares (tempête, nuit complète) et les intégrer au dataset d'entraînement continu
+
 -----
 
-Architecture logicielle, DataOps et MLOps
+
 5. Quelles architectures applicatives sont les plus adaptées pour relier
 flux vidéo, service d’inférence, base de données temporelle et frontend
 (Flask) : traitement batch périodique vs quasi temps réel, microservices,
 file de messages, et quels impacts sur la scalabilité et la tolérance aux
 pannes ?
+
+**Answer:**
+
+Architecture choisis par nos soins  :
+
+- Hypercorn maintient la gestion synchrone et asynchrone des différents composants de l'app, Timer en Cron, tech autour de gunicorn avec File System pour conserver la db running quand le docker est stop, orchestrateur d'instances dockeurs aux tâches spécifiques et flux caméra multiples inégrables, système de Queue en cas de latence temporaire.
+- Quasi temps réel suffisant : latence 5-10s acceptable pour une tâche de comptage.
+- Prioriser fiabilité sur vitesse : On est prêt à faire des concessions sur le temps d'inférence pour utiliser des modèles plus volumineux
+Mais fondamentalement:
+
+Architecture recommandée :
+
+- Traitement batch périodique (toutes les 5-10s) : cohérent avec notre baseline, réduit charge CPU et évite traitement inutile de frames identiques
+- File de messages (Redis/RabbitMQ) : découpler capture → inférence → stockage, permet retry en cas d'échec
+- (Eventuellement) Base temporelle (InfluxDB/TimescaleDB) : optimisée pour séries temporelles (comptages, détections par intervalle)
+- Hypercorn: Flask + cache : servir statistiques pré-calculées, éviter requêtes lourdes en temps réel
+
+Scalabilité et résilience :
+
+- Workers d'inférence indépendants : ajouter capacité sans toucher au reste (horizontal scaling)
+- Stockage intermédiaire : frames dans Redis/S3 si inférence ralentit, évite perte de données
+- Fallback gracieux : si service d'inférence tombe, continue capture et traite en différé
+- Monitoring : alertes sur latence inférence, queue size, disponibilité webcam
+
 
 -----
 
@@ -52,6 +168,32 @@ maîtrisé des modèles de détection d’objets, depuis l’expérimentation
 jusqu’au déploiement reproductible en production (Docker, cloud/on
 premise) ? Monitoring, dérive et réentraînement
 
+**Answer:**
+
+Il est avant tout nécessaire d'avoir une architecture résiliente d'un modèle qui relance un nombre de fois définis une instance qui est down et qui en cas d'échec alerte les équipes.
+Il en découle qu'il est important de pouvoir conserver les logs de fonctionnement de l'architecture docker mais également ceux des instances qui font tourner les différents composants de l'app depuis le docker compose.
+
+On s'assure d'avoir une évaluation continu du modèle post déploiement pour alerter le client d'un éventuel data drift. Ainsi qu'avoir un fallback efficace vers une version précédente de l'application si le déploiement de la nouvelle se passe mal.
+
+Ensuite, il faut industrialiser tout le cycle de vie :
+	•	Tracking & registry (MLflow) : journaliser métriques (mAP, PR par classe), hyperparamètres, artefacts (poids, config), et enregistrer les modèles dans un Model Registry avec statuts (staging/production) pour des promotions contrôlées.
+	•	Versioning complet : versionner code + données + annotations + configs + modèle (Git + DVC/Delta Lake, conventions de version sémantique) afin de pouvoir reproduire un entraînement et diagnostiquer une régression.
+	•	CI/CD : pipeline automatisé (GitHub Actions/GitLab CI) qui exécute :
+	•	tests unitaires (pré/post-traitements, NMS, conversion formats),
+	•	tests de données (schéma, distributions, classes manquantes, images corrompues),
+	•	tests de performance (garde-fous mAP / rappel min par classe),
+	•	tests d’inférence (latence, mémoire, compatibilité GPU/CPU),
+puis build Docker, scan sécurité, et déploiement (K8s/compose) avec stratégie canary/blue-green.
+	•	Patterns de déploiement : séparation claire training / serving, API de prédiction stateless, batch vs temps réel, et “shadow mode” pour comparer un nouveau modèle sans impacter la prod.
+	•	Monitoring :
+	•	système (CPU/GPU, RAM, latence, taux d’erreur),
+	•	données (drift covariate, qualité image, proportions de classes),
+	•	modèle (taux de détection, confiance moyenne, distribution des scores, suivi du rappel sur échantillons labellisés),
+avec alertes et tableaux de bord.
+	•	Dérive & réentraînement : définir des seuils (drift, baisse de rappel sur classes critiques), déclencher une boucle de re-labellisation ciblée + réentraînement, puis validation et promotion via le registry.
+
+En résumé : traçabilité (MLflow + versioning), automatisation (CI/CD + tests), déploiement reproductible (Docker/K8s), et monitoring/drift → réentraînement pour une prod maîtrisée.
+
 -----
 
 7. Quelles métriques et quels signaux (statistiques de distribution, taux
@@ -59,7 +201,22 @@ de détection, feedback utilisateur, anomalies sur les séries temporelles
 de comptage) permettent de détecter efficacement la dérive de
 données ou de concepts dans un système de vidéosurveillance
 algorithmique, et comment déclencher un processus de
-réentraînement pertinent ?
+réentraînement pertinent ? Détection de dérive (data & concept drift)
+
+**Answer:**
+
+Métriques & signaux
+	•	Statistiques de distribution : PSI, KS, JS divergence sur pixels, embeddings visuels, tailles/ratios des bbox, luminosité, angle caméra.
+	•	Taux de détection : variation du nombre d’objets par frame/minute, chute du rappel estimé, baisse de la confiance moyenne.
+	•	Stabilité par classe : déséquilibre soudain des proportions, classes manquantes ou nouvelles confusions.
+	•	Séries temporelles de comptage : ruptures, tendances anormales, saisonnalité cassée (z-score, CUSUM, change point).
+	•	Feedback utilisateur / labels faibles : corrections humaines, faux positifs/négatifs signalés.
+	•	Performance proxy : latence, taux d’échec d’inférence (souvent corrélés à des changements de données).
+
+Déclenchement du réentraînement
+	•	Seuils automatiques (ex. PSI > 0,2, chute > X % du rappel sur classes critiques).
+	•	Confirmation via échantillonnage et labellisation ciblée des cas anormaux.
+	•	Réentraînement incrémental ou complet, validation hors-ligne (mAP, rappel par classe), puis déploiement canary avant promotion en production.
 
 -----
 
@@ -67,6 +224,16 @@ réentraînement pertinent ?
 (MLflow, dashboards, alertes) dans une application de vision par
 ordinateur en production, afin de suivre à la fois la qualité des
 prédictions et la santé opérationnelle du pipeline de traitement vidéo ? RGPD, AI Act et éthique
+
+**Answer:**
+
+En production, le monitoring d’un modèle de vision par ordinateur repose sur une combinaison d’outils et de bonnes pratiques.
+
+D’abord, des outils comme MLflow permettent de suivre les métriques du modèle (mAP, taux de détection, confiance moyenne) et de comparer les versions déployées. Ces métriques sont exposées dans des dashboards (Grafana/Prometheus) pour surveiller à la fois la qualité des prédictions et la santé du pipeline (latence, débit vidéo, erreurs, usage GPU/CPU). Des alertes sont configurées en cas de dérive de données, de baisse de performance ou d’incident système.
+
+Ensuite, des signaux comme l’évolution des distributions de comptage, notamment, les variations de comptage ou le feedback utilisateur permettent de détecter une dérive et de déclencher un réentraînement.
+
+Le monitoring doit également respecter le RGPD et l’AI Act : minimisation des données personnelles, anonymisation (floutage, pas de stockage vidéo inutile), traçabilité des modèles et décisions, transparence et contrôle des biais pour garantir une utilisation éthique du système.
 
 -----
 
@@ -76,9 +243,31 @@ découlent (base légale, DPIA, registres, transparence) et quelles
 pratiques techniques (anonymisation, absence de stockage vidéo,
 agrégation) sont recommandées pour rester conforme ?
 
+**Answer:**
+
+Les systèmes de vidéosurveillance algorithmique sont fortement encadrés par le RGPD et l’AI Act en raison de l’utilisation de données personnelles.
+
+Dans notre cas il ne s'agit que d'une expérience éducative mais il ne faut pas négliger les droits des poissons.
+
+Plus généralement dans un cadre qui implique des individus dotés de droits devant la société:
+
+Le RGPD impose une base légale claire (intérêt légitime, obligation légale…), la réalisation d’une DPIA (analyse d’impact), la tenue de registres de traitement, ainsi que des obligations de transparence envers les personnes filmées (information, droits d’accès et d’opposition).
+
+L’AI Act classe la plupart des systèmes de vidéosurveillance algorithmique comme des systèmes à haut risque, notamment lorsqu’ils sont utilisés dans l’espace public, impliquant des exigences renforcées : gestion des risques, traçabilité, qualité des données, supervision humaine et documentation.
+
+Pour rester conforme, des pratiques techniques sont recommandées : anonymisation ou pseudonymisation (floutage des visages), absence ou limitation du stockage vidéo, traitement en temps réel, et agrégation des résultats (comptage plutôt qu’identification), afin de réduire l’impact sur la vie privée et les risques éthiques.
+
 -----
 
 10. Quels sont les principaux enjeux éthiques liés au comptage
 automatisé de personnes et de véhicules dans l’espace public (risque
 de surveillance de masse, biais sur certaines populations, réutilisation
 des données) et quelles mesures de conception (privacy by design, limitation des finalités, gouvernance des modèles) peuvent en limiter les risques ?
+
+**Answer:**
+
+Le comptage automatisé de personnes et de véhicules dans l’espace public pose plusieurs enjeux éthiques.
+
+Il existe d’abord un risque de surveillance de masse, même sans identification directe, si les systèmes sont généralisés ou détournés de leur finalité initiale. Des biais algorithmiques peuvent aussi affecter certaines populations ou types de véhicules selon les contextes (conditions d’éclairage, apparence, densité). Enfin, la réutilisation des données à d’autres fins que le comptage (sécurité, contrôle) peut porter atteinte aux libertés individuelles.
+
+Pour limiter ces risques, il est recommandé d’appliquer le privacy by design (anonymisation, floutage, traitement en temps réel), de limiter strictement les finalités et la durée de conservation des données, et de mettre en place une gouvernance des modèles (documentation, audits, supervision humaine) afin de garantir un usage responsable et éthique.
