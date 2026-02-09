@@ -19,5 +19,6 @@ print("lien de la video: ", fish_live_cam_link)
 # rtdetr-x.pt
 # yolo8n.pt
 
-model = load_model("yolo11x.pt")
+#model = load_model("yolo11x.pt")
+model = load_model("yolo2best.pt")
 start_video_capture(model, video_url=fish_live_cam_link, resize_dim=False)

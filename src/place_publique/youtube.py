@@ -156,14 +156,14 @@ def start_video_capture(model, video_url=None, resize_dim=(640, 480)):
                     frame_count, timestamp,
                     det['class'], f"{det['confidence']:.4f}",
                     det['x1'], det['y1'], det['x2'], det['y2'],
-                    person_count
+                    saved_count
                 ])
                 saved_count += 1
                 unique_objects[det['class']] += 1
 
         previous_detections = detections
 
-        cv2.putText(frame, f"Personnes: {person_count}", (10, 40),
+        cv2.putText(frame, f"Fishes: {saved_count}", (10, 40),
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
 
         cv2.imshow("YOLO - Flux Video", frame)
@@ -180,4 +180,4 @@ def start_video_capture(model, video_url=None, resize_dim=(640, 480)):
     print("✓ Détections enregistrées :", saved_count)
     print("✓ Objets uniques :", dict(unique_objects))
 
-    plot_accuracies(all_confidences, class_stats, frame_count)
+    #plot_accuracies(all_confidences, class_stats, frame_count)
