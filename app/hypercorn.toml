@@ -1,7 +1,7 @@
-bind = "0.0.0.0:8080"
+bind = "0.0.0.0:80"
 workers = 3
 use_reloader = true
-accesslog = "/var/log/hypercorn/flask_access.log"
-errorlog = "/var/log/hypercorn/flask_error.log"
+accesslog = "/var/log/hypercorn/access.log"
+errorlog = "/var/log/hypercorn/error.log"
 loglevel = "info"
 keep_alive_timeout = 300
