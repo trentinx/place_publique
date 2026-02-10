@@ -12,6 +12,7 @@ def load_model(model_name="yolo11x.pt"):
     if model_name.startswith("yolo"):
         model = YOLO(model_name)  
     elif model_name.startswith("rtdetr"): 
-        model = RTDETR('rtdetr-x.pt')
+        model = RTDETR(model_name)
 
     return model
+ 

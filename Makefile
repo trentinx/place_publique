@@ -6,12 +6,14 @@ clean:
 	@for file in ".ipynb_checkpoints" "*.egg-info" "__pycache__" "upload"; do \
     	find -name  $$file | xargs rm -fr; \
 	done;
-		
-install:
-	@uv pip install  .
 
-install-dev:
+install:
+ifeq ($(MODE),dev)
 	@uv pip install -e .
+else
+#	@pip install git+https://github.com/trentinx/place_publique
+	@pip install flask hypercorn
+endif
 
 
 flask-up:
@@ -41,3 +43,7 @@ ifeq ($(MODE),dev)
 else
 	@pkill 'supervisord'
 endif
+
+
+# docker run -d -p 8080:8080 --name flask xavier_flask_test:1.0
+# docker rm flask

@@ -8,7 +8,7 @@ wheels/
 
 # Virtual environments
 .venv
-
+.env
 
 # Computer Vision models
 yolo*
@@ -17,3 +17,6 @@ rtdetr*
 
 # Data files
 *.csv
+captures
+datasets
+runs
