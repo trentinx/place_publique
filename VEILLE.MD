@@ -271,3 +271,75 @@ Le comptage automatisé de personnes et de véhicules dans l’espace public pos
 Il existe d’abord un risque de surveillance de masse, même sans identification directe, si les systèmes sont généralisés ou détournés de leur finalité initiale. Des biais algorithmiques peuvent aussi affecter certaines populations ou types de véhicules selon les contextes (conditions d’éclairage, apparence, densité). Enfin, la réutilisation des données à d’autres fins que le comptage (sécurité, contrôle) peut porter atteinte aux libertés individuelles.
 
 Pour limiter ces risques, il est recommandé d’appliquer le privacy by design (anonymisation, floutage, traitement en temps réel), de limiter strictement les finalités et la durée de conservation des données, et de mettre en place une gouvernance des modèles (documentation, audits, supervision humaine) afin de garantir un usage responsable et éthique.
+
+---
+11. Comment passer d’un détecteur « fermé » classique (qui choisit toujours une classe connue) à une approche d’open‑set object detection capable de signaler des objets inconnus ou « autre » dans une scène réelle de vidéosurveillance ? 
+**Answer:**
+
+On passe du closed-set à l’open-set en ajoutant un mécanisme de rejet : seuil de confiance, estimation d’incertitude ou détection d’outliers dans l’espace des embeddings. L’objectif est de permettre au modèle de dire « je ne sais pas » au lieu de forcer une classe connue.
+
+---
+12. Quelles stratégies (seuils de confiance, incertitude, bruit de fond, pseudo‑labels, zones d’attention) permettent de distinguer un vrai « objet inconnu » d’un simple faux positif ou d’un bruit de fond dans un modèle de détection ? 
+**Answer:**
+
+On combine plusieurs signaux : score faible, forte incertitude, incohérence temporelle (objet vu une seule frame) et énergie élevée. Un vrai objet inconnu est généralement stable dans le temps et spatialement cohérent, contrairement au bruit.
+
+---
+13. Comment exploiter les objets détectés comme « inconnus/autre » pour déclencher un processus de ré‑annotation / ré‑entraînement, et transformer progressivement ces inconnus en nouvelles classes utiles pour le client (nouveaux types de véhicules, engins de chantier, équipements saisonniers, etc.)? 
+**Answer:**
+
+Les objets marqués « unknown » sont stockés, clusterisés automatiquement, puis annotés par un humain. Ils sont ensuite intégrés au dataset et le modèle est ré-entraîné, ce qui transforme progressivement les inconnus en nouvelles classes.
+
+---
+14. Quelles métriques ou protocoles d’évaluation spécifiques à l’open‑set (taux de détection d’inconnus, calibration de la confiance, analyse des erreurs sur les classes « autre ») peut‑on utiliser pour juger la robustesse réelle du système dans un environnement ouvert ? 
+**Answer:**
+
+On utilise des métriques spécifiques comme l’AUROC OOD, l’Open-Set Error et l’Expected Calibration Error. Elles mesurent la capacité du modèle à rejeter l’inconnu tout en restant fiable sur le connu.
+
+---
+15. Pourquoi le serveur intégré de Flask n’est‑il pas une solution adaptée à la production (concurrence limitée, pas de gestion robuste des workers, absence de fonctionnalités avancées de log et de monitoring) et en quoi un serveur WSGI comme gUnicorn répond‑il à ces limites? 
+**Answer:**
+
+Le serveur Flask est mono-processus et instable en charge. gUnicorn gère plusieurs workers, les redémarrages automatiques et la concurrence, ce qui en fait une vraie solution de production.
+
+---
+16. Comment architecturer un déploiement typique Flask + gUnicorn (+ éventuellement Nginx) : rôle de chaque composant, gestion des workers, équilibrage de charge, gestion des timeouts pour les requêtes d’inférence lourdes (vision par ordinateur)? 
+**Answer:**
+
+Nginx sert de reverse proxy et gère HTTPS. gUnicorn gère les workers Python. Flask contient la logique métier et l’inférence du modèle.
+
+---
+17. Quelles options de configuration gUnicorn (nombre de workers, worker class sync / gevent, limites de temps, logs) sont particulièrement critiques pour une API de détection d’objets qui doit traiter simultanément plusieurs flux webcams? 
+**Answer:**
+
+Les paramètres critiques sont le nombre de workers, le timeout élevé pour l’inférence, et le type de worker (sync ou gevent). Ils déterminent directement la latence et la stabilité du service.
+
+---
+18. Comment intégrer gUnicorn dans la chaîne CI/CD existante du projet (Dockerfile, commande d’entrée, health checks) afin de passer facilement d’un serveur de dev Flask à un service de prod reproductible? 
+**Answer:**
+
+gUnicorn est lancé dans le Dockerfile comme point d’entrée. Le pipeline CI construit l’image, lance les tests et déploie automatiquement sur le cluster.
+
+---
+19. Quelles sont les principales options de déploiement d’un service de vision par ordinateur dans le cloud (VM classique, conteneur Docker sur Kubernetes, serverless type Lambda/Cloud Functions, endpoints managés type Vertex AI / SageMaker) et quels sont leurs avantages / limites pour un traitement de flux vidéos périodiques ou temps quasi réel ? 
+**Answer:**
+
+Les conteneurs sur Kubernetes sont le meilleur compromis entre flexibilité, performance GPU et scalabilité. Les solutions serverless sont peu adaptées aux flux vidéo continus.
+
+---
+20. Comment concevoir une architecture scalable où le service d’inférence est conteneurisé (Docker) et déployé sur un orchestrateur (Kubernetes, ECS, AKS, GKE) afin d’ajuster automatiquement le nombre de workers de détection en fonction du nombre de webcams et du volume de requêtes ? 
+**Answer:**
+
+Chaque pod contient un modèle. Un autoscaler ajuste le nombre de pods en fonction du nombre de requêtes ou de l’usage GPU.
+
+---
+21. Dans quels cas un déploiement « edge » (Docker sur une machine sur site, cluster on‑premise) est‑il préférable au full cloud pour ce type d’application (latence, confidentialité, coûts de bande passante) et comment intégrer cette contrainte dans l’architecture proposée pour ce projet? 
+**Answer:**
+
+Le edge est préférable quand la latence, la confidentialité ou les coûts réseau sont critiques. On garde alors l’inférence sur site et le cloud pour le monitoring et le retraining.
+
+---
+22.Quelles bonnes pratiques de monitoring et d’observabilité cloud (logs centralisés, métriques, traces, dashboards) doit‑on ajouter à MLflow pour suivre à la fois la santé du cluster (CPU/GPU, mémoire) et la qualité des prédictions (drift, erreurs, temps de réponse) à grande échelle ?
+**Answer:**
+
+On surveille à la fois l’infrastructure (CPU/GPU, RAM, latence) et le modèle (drift, taux d’unknown, distribution des scores). Sans observabilité, un système IA en production devient rapidement aveugle.
