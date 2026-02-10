@@ -16,7 +16,7 @@ WORKDIR /home/user
 
 ENV MODE=prod
 
-COPY --chown=user api app
+COPY --chown=user . app
 RUN mv app/Makefile Makefile
 
 

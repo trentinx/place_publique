@@ -12,7 +12,3 @@ service-up:
 service-down:
 	@pkill 'supervisord'	
 
-
-
-# docker run -d -p 8080:8080 --name flask xavier_flask_test:1.0
-# docker rm flask

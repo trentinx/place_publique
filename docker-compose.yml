@@ -1,0 +1,20 @@
+services:
+  flask:
+    build: ./app
+    container_name: flask
+    networks:
+      - backend_network
+    ports:
+      - 80
+
+  fastapi:
+    build: ./api
+    container_name: fastapi
+    networks:
+      - backend_network
+    ports:
+      - 80
+
+networks:
+  backend_network:
+    driver: bridge
