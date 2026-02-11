@@ -1,0 +1,16 @@
+services:
+  python_compute:
+    image: python:3.13-slim
+    container_name: python_compute
+    volumes:
+      - ../scripts:/root/scripts
+    environment:
+      - PYTHONUNBUFFERED=1
+    stdin_open: true
+    tty: true
+    command: >
+      sh -c "apt update;
+       apt install -y libgl1 libglib2.0-0 libxcb1;
+       pip install -U pip;
+       pip install ultralytics mlflow;
+       bash"
