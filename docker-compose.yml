@@ -3,7 +3,7 @@ services:
     build: ./app
     container_name: flask
     networks:
-      - backend_network
+      - 5f063e85-93db-481e-bf1e-b55a047922b5
     ports:
       - 80
 
@@ -11,10 +11,11 @@ services:
     build: ./api
     container_name: fastapi
     networks:
-      - backend_network
+      - 5f063e85-93db-481e-bf1e-b55a047922b5
     ports:
       - 80
 
 networks:
-  backend_network:
+  5f063e85-93db-481e-bf1e-b55a047922b5:
+    name: 5f063e85-93db-481e-bf1e-b55a047922b5
     driver: bridge
