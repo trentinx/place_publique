@@ -12,5 +12,5 @@ services:
       sh -c "apt update;
        apt install -y libgl1 libglib2.0-0 libxcb1;
        pip install -U pip;
-       pip install ultralytics mlflow;
+       pip install ultralytics mlflow python-dotenv requests;
        bash"

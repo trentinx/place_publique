@@ -9,8 +9,6 @@ services:
       --host 0.0.0.0 
       --port 80
       --allowed-hosts "*"
-    volumes:
-      - ../files/mlflow_data:/mlflow
     networks:
       - 5f063e85-93db-481e-bf1e-b55a047922b5
     ports:
