@@ -3,17 +3,18 @@ services:
     image: ghcr.io/mlflow/mlflow:latest
     container_name: mlflow
     command: >
-      mlflow server 
-      --backend-store-uri sqlite:///mlflow.db 
-      --default-artifact-root /mlflow/artifacts 
-      --host 0.0.0.0 
-      --port 80
-      --allowed-hosts "*"
+      sh -c "mkdir -p mlflow/artifacts && \
+      mlflow server \
+      --backend-store-uri sqlite:///mlflow.db \
+      --serve-artifacts \
+      --artifacts-destination /mlflow/artifacts \
+      --host 0.0.0.0 \
+      --port 80 \
+      --allowed-hosts \"*\""
     networks:
       - 5f063e85-93db-481e-bf1e-b55a047922b5
     ports:
       - 80
-
 networks:
   5f063e85-93db-481e-bf1e-b55a047922b5:
     external: true
