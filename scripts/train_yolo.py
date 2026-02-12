@@ -4,7 +4,7 @@ import zipfile
 import requests
 from pathlib import Path
 from dotenv import load_dotenv
-from ultralytics import YOLO
+from ultralytics import YOLO, settings
 import mlflow
 
 # chargement des variables d'environnement
@@ -14,6 +14,9 @@ load_dotenv()
 #mlflow.set_experiment(os.getenv("MLFLOW_EXPERIMENT_NAME"))
 
 def main():
+
+    # Update a setting
+    mlflow.settings.update({"mlflow": True})
 
     with mlflow.start_run(run_name=trial_name) as run:
         mlflow.set_tag("model", model_name)
@@ -77,6 +80,6 @@ if __name__ == "__main__":
         sys.exit(1)
 
     model_name = "yolov8n.pt"
-    trial_name = "trial_1"
+    trial_name = "trial_2"
     
     main()
