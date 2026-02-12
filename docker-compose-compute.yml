@@ -1,0 +1,12 @@
+services:
+  python_compute:
+    build:
+      context: .
+      dockerfile: compute/Dockerfile
+    #volumes:
+    #  - ./scripts:/home/user/scripts
+    container_name: python_compute
+    environment:
+      - PYTHONUNBUFFERED=1
+    stdin_open: true
+    tty: true
