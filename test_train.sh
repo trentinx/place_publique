@@ -35,14 +35,14 @@ if [[ -d "$DESTDIR" ]]; then
 fi
 
 mkdir -p "$DESTDIR"
-curl -fL "https://app.roboflow.com/ds/O4ncNnKjMD?key=$ROBOFLOW_API_KEY" -o roboflow.zip
-unzip -q roboflow.zip -d "$DESTDIR"
+curl -fL "https://universe.roboflow.com/ds/zgmYOM0mZA?key=$ROBOFLOW_API_KEY" -o roboflow.zip
+unzip roboflow.zip -d "$DESTDIR" -q
 rm roboflow.zip
 
-sed -i '' \
-  -e 's|train: \.\./|train: ./|' \
-  -e 's|val: \.\./|val: ./|' \
-  -e 's|test: \.\./|test: ./|' \
-  "$DESTDIR/data.yaml"
+sed -i -e 's/train: \.\./train: \./' \
+       -e 's/val: \.\./val: \./' \
+       -e 's/test: \.\./test: \./' \
+       "$DESTDIR/data.yaml"
 
-yolo task=detect mode=train model="$MODEL" data="$DESTDIR/data.yaml" epochs=3 imgsz=640 batch=16 lr0=0.01
+yolo task=detect mode=train model="$MODEL" data="$DESTDIR/data.yaml" epochs=50
+# imgsz=640 batch=16 lr0=0.01

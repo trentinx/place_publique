@@ -9,10 +9,12 @@ def load_model(model_name="yolo11x.pt"):
          Loaded model object
      """
     print("Chargement du modèle...")
-    if model_name.startswith("yolo"):
-        model = YOLO(model_name)  
-    elif model_name.startswith("rtdetr"): 
+    if model_name.startswith("yolo") or model_name.endswith(".pt"):
+        model = YOLO(model_name)
+    elif model_name.startswith("rtdetr"):
         model = RTDETR(model_name)
+    else:
+        raise ValueError(f"Unsupported model identifier: {model_name}")
 
     return model
  

@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 13
+names: ['AngelFish', 'BlueTang', 'ButterflyFish', 'ClownFish', 'GoldFish', 'Gourami', 'MorishIdol', 'PlatyFish', 'RibbonedSweetlips', 'ThreeStripedDamselfish', 'YellowCichlid', 'YellowTang', 'ZebraFish']
+
+roboflow:
+  workspace: placepublique
+  project: fish-detection-fztlb-bhnpg
+  version: 1
+  license: CC BY 4.0
+  url: https://app.roboflow.com/placepublique/fish-detection-fztlb-bhnpg/1

@@ -20,5 +20,7 @@ print("lien de la video: ", fish_live_cam_link)
 # yolo8n.pt
 
 #model = load_model("yolo11x.pt")
-model = load_model("yolo2best.pt")
+# model = load_model("yolo2best.pt")
+# model = load_model("runs/detect/train3/weights/best.pt")
+model = load_model("/Users/julienrm/Workspace/formation/test_vision/runs/detect/train3/weights/best.pt")
 start_video_capture(model, video_url=fish_live_cam_link, resize_dim=False)

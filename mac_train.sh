@@ -7,7 +7,7 @@ if [[ $# -lt 1 ]]; then
 fi
 
 DATASET=$1
-MODEL=${MODEL:-yolov8n.pt}
+MODEL=${MODEL:-yolo26n.pt}
 ENV_FILE=".env"
 
 if [[ -f "$ENV_FILE" ]]; then
@@ -34,8 +34,11 @@ if [[ -d "$DESTDIR" ]]; then
   exit 0
 fi
 
+# curl -L "https://app.roboflow.com/ds/oiK46Uob7r?key=51LLS5t4ny" > roboflow.zip; unzip roboflow.zip; rm roboflow.zip
+# oiK46Uob7r?key=51LLS5t4ny"
 mkdir -p "$DESTDIR"
-curl -fL "https://app.roboflow.com/ds/O4ncNnKjMD?key=$ROBOFLOW_API_KEY" -o roboflow.zip
+# curl -fL "https://app.roboflow.com/ds/O4ncNnKjMD?key=$ROBOFLOW_API_KEY" -o roboflow.zip
+curl -fL "https://app.roboflow.com/ds/oiK46Uob7r?key=$ROBOFLOW_API_KEY" -o roboflow.zip
 unzip -q roboflow.zip -d "$DESTDIR"
 rm roboflow.zip
 
@@ -45,4 +48,4 @@ sed -i '' \
   -e 's|test: \.\./|test: ./|' \
   "$DESTDIR/data.yaml"
 
-yolo task=detect mode=train model="$MODEL" data="$DESTDIR/data.yaml" epochs=3 imgsz=640 batch=16 lr0=0.01
+yolo task=detect mode=train model="$MODEL" data="$DESTDIR/data.yaml" epochs=100 imgsz=640 batch=16 lr0=0.01

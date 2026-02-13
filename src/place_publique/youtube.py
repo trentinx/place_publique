@@ -83,7 +83,9 @@ def start_video_capture(model, video_url=None, resize_dim=(640, 480)):
     print("ESC pour quitter")
 
     csv_filename = f"detections_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
-    csv_filename = os.path.join("data", csv_filename)
+    csv_dir = os.path.join("data")
+    os.makedirs(csv_dir, exist_ok=True)
+    csv_filename = os.path.join(csv_dir, csv_filename)
     csv_file = open(csv_filename, 'w', newline='')
     csv_writer = csv.writer(csv_file)
     csv_writer.writerow([

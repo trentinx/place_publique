@@ -7,7 +7,6 @@ if [[ $# -lt 1 ]]; then
 fi
 
 DATASET=$1
-MODEL=${MODEL:-yolov8n.pt}
 ENV_FILE=".env"
 
 if [[ -f "$ENV_FILE" ]]; then
@@ -22,11 +21,6 @@ if [[ -z "${ROBOFLOW_API_KEY:-}" ]]; then
   exit 1
 fi
 
-if ! command -v yolo >/dev/null 2>&1; then
-  echo "Error: 'yolo' CLI not found. Install ultralytics (e.g., 'uv pip install -e .')."
-  exit 1
-fi
-
 DESTDIR="datasets/$DATASET"
 
 if [[ -d "$DESTDIR" ]]; then
@@ -35,14 +29,14 @@ if [[ -d "$DESTDIR" ]]; then
 fi
 
 mkdir -p "$DESTDIR"
-curl -fL "https://app.roboflow.com/ds/O4ncNnKjMD?key=$ROBOFLOW_API_KEY" -o roboflow.zip
+curl -fL "https://universe.roboflow.com/ds/zgmYOM0mZA?key=$ROBOFLOW_API_KEY" -o roboflow.zip
 unzip -q roboflow.zip -d "$DESTDIR"
 rm roboflow.zip
 
-sed -i '' \
-  -e 's|train: \.\./|train: ./|' \
-  -e 's|val: \.\./|val: ./|' \
-  -e 's|test: \.\./|test: ./|' \
-  "$DESTDIR/data.yaml"
+sed -i -e 's/train: \.\./train: \./' \
+       -e 's/val: \.\./val: \./' \
+       -e 's/test: \.\./test: \./' \
+       "$DESTDIR/data.yaml"
 
-yolo task=detect mode=train model="$MODEL" data="$DESTDIR/data.yaml" epochs=3 imgsz=640 batch=16 lr0=0.01
+# yolo task=detect mode=train model=$MODEL data=$DESTDIR/data.yaml epochs=50
+# imgsz=640 batch=16 lr0=0.01
