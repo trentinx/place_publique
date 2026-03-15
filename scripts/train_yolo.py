@@ -75,5 +75,5 @@ if __name__ == "__main__":
     trial_name = "trial_1"
     
     # Update a setting
-    settings.update({"mlflow": False})
+    settings.update({"mlflow": True})
     main()
