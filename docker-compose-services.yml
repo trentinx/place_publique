@@ -1,19 +1,27 @@
 services:
   flask:
-    build: ./app
+    build:
+      context: .
+      dockerfile: app/Dockerfile
     container_name: flask
     networks:
-      - 5f063e85-93db-481e-bf1e-b55a047922b5
+     - 5f063e85-93db-481e-bf1e-b55a047922b5
     ports:
-      - 80
+      - 8080:80
+    volumes:
+      - ./captures:/home/user/captures
 
   fastapi:
-    build: ./api
+    build: 
+      context: .
+      dockerfile: api/Dockerfile
     container_name: fastapi
     networks:
       - 5f063e85-93db-481e-bf1e-b55a047922b5
     ports:
-      - 80
+      - 8082:80
+    volumes:
+      - ./captures:/home/user/captures
 
 networks:
   5f063e85-93db-481e-bf1e-b55a047922b5:
