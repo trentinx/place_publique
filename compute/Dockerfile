@@ -13,6 +13,9 @@ USER user
 
 RUN echo "export PATH=\$PATH:~/.local/bin" >> ~/.bashrc
 RUN pip install -U pip
-RUN pip install ultralytics mlflow python-dotenv requests;
+RUN pip install ultralytics mlflow python-dotenv requests
+RUN pip uninstall numpy polars
+RUN pip install "numpy<2.0" polars[rtcompat]
 
 ENTRYPOINT [ "/bin/bash" ]
+ 
