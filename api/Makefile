@@ -4,8 +4,8 @@ SHELL := /bin/bash
 
 install:
 #	@pip install git+https://github.com/trentinx/place_publique
-	@pip install fastapi hypercorn
-
+	@pip install . ".[api]"
+	
 service-up:
 	@supervisord -c app/supervisor.conf
 

@@ -1,10 +1,11 @@
-FROM python:3.13-bullseye
+# FROM python:3.13-bullseye
+FROM ultralytics/ultralytics:8.4.22-python-export
 
 
 RUN useradd -m -U user; \ 
     apt update; \
     apt upgrade; \
-    apt install -y build-essential supervisor htop vim
+    apt install -y build-essential supervisor htop vim procps iputils-ping
 
 
 RUN mkdir -p /var/log/hypercorn
@@ -16,7 +17,9 @@ WORKDIR /home/user
 
 ENV MODE=prod
 
-COPY --chown=user . app
+COPY --chown=user app app
+COPY --chown=user src src
+COPY --chown=user pyproject.toml config.json /home/user/
 RUN mv app/Makefile Makefile
 
 
