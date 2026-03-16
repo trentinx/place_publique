@@ -274,7 +274,7 @@ class YouTubeCapture:
 
                 # Save the extracted frame
                 pil_image.save(filepath, 'JPEG', quality=95)
-                inference = self.model.predict(filepath, conf=0.95)
+                inference = self.model.predict(filepath)
                 inference[0].save(filepath)
 
                 files = sorted(os.listdir(folder), reverse=True)
