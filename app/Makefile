@@ -4,7 +4,7 @@ SHELL := /bin/bash
 
 install:
 #	@pip install git+https://github.com/trentinx/place_publique
-	@pip install flask hypercorn
+	@pip install  . ".[app]"
 
 service-up:
 	@supervisord -c app/supervisor.conf
