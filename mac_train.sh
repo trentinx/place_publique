@@ -7,7 +7,7 @@ if [[ $# -lt 1 ]]; then
 fi
 
 DATASET=$1
-MODEL=${MODEL:-yolo26n.pt}
+MODEL=${MODEL:-yolo11l.pt}
 ENV_FILE=".env"
 
 if [[ -f "$ENV_FILE" ]]; then

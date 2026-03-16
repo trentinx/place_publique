@@ -10,7 +10,7 @@ import cv2
 SOURCE = "https://youtu.be/kkYybcn5VoM"
 
 # ✅ Take one screenshot every 5 seconds
-SECONDS_INTERVAL = 5
+SECONDS_INTERVAL = 0.5
 
 MAX_IMAGES_PER_SESSION = 20
 RESTART_SLEEP_SECONDS = 2
