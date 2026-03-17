@@ -23,7 +23,8 @@ USER user
 
 RUN mv app/Makefile Makefile
 RUN mkdir model
-COPY --chown=user runs/detect/train/weights/best.pt ./model/yolo.pt
+ARG MODEL_PATH
+COPY --chown=user ${MODEL_PATH} ./model/yolo.pt
 RUN pip install -U pip
 RUN make install
 

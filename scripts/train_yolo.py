@@ -13,8 +13,7 @@ load_dotenv()
 #mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI"))
 #mlflow.set_experiment(os.getenv("MLFLOW_EXPERIMENT_NAME"))
 
-def main():        
-    dataset_name = sys.argv[1]
+def main(trial_name, model_name, dataset_name):        
     dest_dir = Path(f"datasets/{dataset_name}")
     # récupération des variables
     host = os.getenv("ROBOFLOW_HOST")
@@ -51,8 +50,13 @@ def main():
 
     # entraînement avec yolo
     
-    model = YOLO(model_name)
-
+    if "26" in model_name:
+        model = YOLO()
+        model.load(model_name)
+    else:
+        model = YOLO(model_name)
+    mlflow.set_tracking_uri("file://" + str(Path.cwd() / "mlruns"))
+    mlflow.set_experiment("yolo_training")  
     with mlflow.start_run(run_name=trial_name):
         mlflow.autolog()
         mlflow.set_tag("model", model_name)
@@ -60,20 +64,25 @@ def main():
         model.train(
             data=str(yaml_path),
             task="detect",
-            epochs=10,
-            name=trial_name
+            epochs=100,
+            name=trial_name,
+            device=0,
+            batch=8
         )
 
 
 if __name__ == "__main__": 
-    
-    if len(sys.argv) < 2:
-        print("usage: python setup_and_train.py <dataset_name>")
+        
+    if len(sys.argv) < 3:
+        print("usage: python train.py <trial_name> <dataset_name>")
         sys.exit(1)
 
+    trial_name = sys.argv[1]
+    dataset_name = sys.argv[2]
     model_name = "yolov8n.pt"
-    trial_name = "trial_1"
+    model_name = "yolo11l.pt"
+    #model_name = "weights/yolo26x.pt"
     
     # Update a setting
     settings.update({"mlflow": True})
-    main()
+    main(trial_name, model_name, dataset_name)
